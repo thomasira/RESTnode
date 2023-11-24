@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form-Data | Test Node</title>
+</head>
+
+<style>
+    input{
+        display: block;
+        margin: 5px;
+    }
+</style>
+
+<body>
+    <h2>Salut <span id="greeting"></span></h2>
+    <form>
+        <label>Id
+            <input type="text" name="id">
+        </label>
+        <label>Name
+            <input type="text" name="name">
+        </label>
+        <label>Password
+            <input type="password" name="password">
+        </label>
+        <label>Profession
+            <input type="text" name="profession">
+        </label>
+        <button type="submit">Update</button>
+    </form>
+    <button onclick="handleDelete()">Delete</button>
+</body>
+
+<script>
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+
+    function handleDelete() {
+        fetch('/delete-user/' + id, {
+            method: 'delete',
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json"
+            }
+        });
+    }
+
+    async function fetchData() {
+        const response = await fetch('/id='+id);
+        const data = await response.json();
+        return data;
+    }
+
+    async function fillForm() {
+        const data = await fetchData();
+        document.querySelector('span').textContent = data.name;
+        const form = document.querySelector('form');
+
+        form.id.value = data.id;
+        form.name.value = data.name;
+        form.profession.value = data.profession;
+        form.password.value = data.password;
+    }
+
+    fillForm();
+
+    document.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = document.querySelector('form');
+        const formData = new FormData(form);
+        const plainFormData = Object.fromEntries(formData.entries());
+        const formDataJsonString = JSON.stringify(plainFormData);
+
+        fetch('/update-user', { 
+            method: 'put',
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json"
+            },
+            body: formDataJsonString
+        });
+        form.reset();
+    });
+
+</script>
+</html>
